@@ -3,6 +3,8 @@ const app = express()
 const port = 3000
 const fs = require('fs');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const secretKey  = "test-pass"
 
 app.use(express.json())
 // per scrivere nel file ci serve il percorso
@@ -11,6 +13,21 @@ const usersFilePath = path.join(__dirname, 'db', 'users.json');
 //mentre questo é il file
 let todos = require("./db/todos.json");
 let users = require("./db/users.json")
+//------------------------------------------------ middleware
+ const authenticateUser = (req, res, next) => {
+     const token = req.header('Authorization');
+     if (!token) {
+         return res.status(401).json({ error: 'no token :(' });
+     }
+     try {
+        const decoded = jwt.verify(token,secretKey)
+        req.user = decoded.user
+        next()
+     } catch (error) {
+         console.error('error verify token->', error);
+         return res.status(401).json({ error: 'not valid token' });
+     }
+ }
 //----------------------------------------------
 // read operation here
 app.get('/', (req, res) => {

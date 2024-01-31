@@ -16,6 +16,7 @@ let users = require("./db/users.json")
 
 
 const auth = require('./middleware')
+const todosCRUD = require('./todos')
 app.post('/register', (req,res)=> {
     const { username, password } = req.body;
     const users = require("./db/users.json")
@@ -43,21 +44,22 @@ app.post('/login', (req,res)=>{
     console.log(token);
     res.json(token)
 })
+
 // read operation here
 // non deve darmi quelle del due 🔥
 
-app.post('/userTodoList/:id', auth, (req, res) => {
-    const id = req.params.id
-    const user = users.find((e) => e.id == id);
-    if (!user) {
-        return res.status(404).json({ error: 'not find user' })
-    }
-    const todoList = todos.filter(e => e.userId == id)
-    if (todoList.length == []) {
-        return res.status(200).json({ error: 'no todos, just relax' })
-    }
-    res.json(todoList)
-})
+// app.post('/userTodoList/:id', auth, (req, res) => {
+//     const id = req.params.id
+//     const user = users.find((e) => e.id == id);
+//     if (!user) {
+//         return res.status(404).json({ error: 'not find user' })
+//     }
+//     const todoList = todos.filter(e => e.userId == id)
+//     if (todoList.length == []) {
+//         return res.status(200).json({ error: 'no todos, just relax' })
+//     }
+//     res.json(todoList)
+// })
 app.get('/', auth, (req, res) => {
     //res.send('Hello World!')
     res.json(todos)

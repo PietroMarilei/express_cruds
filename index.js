@@ -4,7 +4,7 @@ const port = 3000
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const secretKey  = "test-pass"
+const secretKey  = "test-password"
 
 app.use(express.json())
 // per scrivere nel file ci serve il percorso
@@ -13,24 +13,52 @@ const usersFilePath = path.join(__dirname, 'db', 'users.json');
 //mentre questo é il file
 let todos = require("./db/todos.json");
 let users = require("./db/users.json")
-//------------------------------------------------ middleware
- const authenticateUser = (req, res, next) => {
-     const token = req.header('Authorization');
-     if (!token) {
-         return res.status(401).json({ error: 'no token :(' });
-     }
-     try {
-        const decoded = jwt.verify(token,secretKey)
-        req.user = decoded.user
-        next()
-     } catch (error) {
-         console.error('error verify token->', error);
-         return res.status(401).json({ error: 'not valid token' });
-     }
- }
-//----------------------------------------------
+
+
+const auth = require('./middleware')
+app.post('/register', (req,res)=> {
+    const { username, password } = req.body;
+    const users = require("./db/users.json")
+    const newUser = {
+        "id": users.length +1,
+        "username" : username,
+        "password" : password
+    }
+    if (users.find((e) => e.username == username)) {
+        return res.status(200).json({ error: 'choose an unique username!' })
+    }
+    users.push(newUser)
+   
+    fs.writeFileSync(usersFilePath, JSON.stringify(users));
+    res.json(newUser)
+})
+app.post('/login', (req,res)=>{
+    const { username, password } = req.body;
+    const user = users.find((e) => e.username == username);
+
+    if (!user || user.password !== password) {
+        return res.status(401).json({ error: 'Credenziali non valide' });
+    }
+    const token = jwt.sign({ userId: user.id, username: user.username }, secretKey, { expiresIn: '1h' });
+    console.log(token);
+    res.json(token)
+})
 // read operation here
-app.get('/', (req, res) => {
+// non deve darmi quelle del due 🔥
+
+app.post('/userTodoList/:id', auth, (req, res) => {
+    const id = req.params.id
+    const user = users.find((e) => e.id == id);
+    if (!user) {
+        return res.status(404).json({ error: 'not find user' })
+    }
+    const todoList = todos.filter(e => e.userId == id)
+    if (todoList.length == []) {
+        return res.status(200).json({ error: 'no todos, just relax' })
+    }
+    res.json(todoList)
+})
+app.get('/', auth, (req, res) => {
     //res.send('Hello World!')
     res.json(todos)
 })
@@ -53,18 +81,7 @@ app.get('/user/:id', (req,res)=>{
     }
     res.json(user)
 })
-app.get('/userTodoList/:id', (req, res) => {
-    const id = req.params.id
-    const user = users.find((e) => e.id == id);
-    if (!user) {
-        return res.status(404).json({ error: 'not find user' })
-    }
-    const todoList = todos.filter(e => e.userId == id)
-   if (todoList==[]) {
-       return res.status(200).json({ error: 'no todos, just relax' })
-   }
-    res.json(todoList)
-})
+
 
 // create operation here
 app.post('/addTodos', (req, res) => {

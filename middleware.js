@@ -9,7 +9,10 @@ const auth = (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, secretKey)
-        req.user = decoded.user
+        // lo posso anche rendere disponibile in sessione
+        // req.session.user = { id: decoded.userId, username: decoded.username };
+        //infilo nella req i dati dell'user
+        req.user = { id: decoded.userId, username: decoded.username }
         next()
     } catch (error) {
         console.error('error verify token->', error);

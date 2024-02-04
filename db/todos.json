@@ -1,5 +1,1 @@
-[
-  { "id": 1, "done": false, "text": "keep calm", "userId": 1},
-  { "id": 2, "done": false, "text": "todo list", "userId": 2},
-  { "id": 3, "done": false, "text": "and code", "userId": 1}
-]
+[{"done":false,"text":"check","userId":2},{"done":false,"text":"check","userId":2},{"id":4,"done":true,"text":"updated","userId":2},{"id":4,"done":true,"text":"updated","userId":3}]

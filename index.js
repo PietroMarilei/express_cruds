@@ -30,7 +30,8 @@ const auth = require('./middleware')
 //todo controller routes here
 const todoController = require('./todoController');
 
-app.get('/userTodoList', todoController);
+app.use('/todos', todoController);
+
 //------------------------------------
 app.post('/register', (req,res)=> {
     const { username, password } = req.body;
@@ -164,7 +165,7 @@ app.get('/', auth, (req, res) => {
 
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+    console.log(`MY_API listening on port ${port}`)
 })
 
 

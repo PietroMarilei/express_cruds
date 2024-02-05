@@ -12,7 +12,7 @@ router.use(auth);
 router.get('/getTodo/:id', getTodos)
 router.post('/addTodo', addTodo)
 router.post('/updateTodo/:id', updateTodo)
-router.post('/deleteTodo/:id', deleteTodo)
+router.delete('/deleteTodo/:id', deleteTodo)
 
 function getTodos(req, res) {
     const id = req.params.id
@@ -31,10 +31,16 @@ function getTodos(req, res) {
 }
 
 function addTodo(req, res) {
+    if (!isValidUpdateData(req.body)) {
+        return res.status(400).json({ error: 'Invalid update data format', updateData });
+    }
+
     const newTodo = req.body
     newTodo.id = todos.length + 1
     newTodo.userId = req.user.id
     todos.push(req.body);
+
+  
 
     fs.writeFileSync(todosFilePath, JSON.stringify(todos))
 
@@ -73,8 +79,22 @@ function updateTodo(req, res) {
 //delete 
 function deleteTodo (req, res)  {
     const id = req.params.id
+
+    // copntrollo se l'user puó cancellare quel todo
+    if (req.body.userId != req.user.id) {
+        return res.status(401).json({error: "You can't delete others todos"})
+    }
+  
     const updatedTodos = todos.filter((e) => e.id != id)
 
+    // Verifica se l'elemento esiste nell'array
+    const indexToDelete = todos.findIndex((e) => e.id == id);
+
+    console.log(indexToDelete);
+
+    if (indexToDelete === -1) {
+        return res.status(404).json({ error: "Todo not found, try another id" });
+    }
 
     todos = updatedTodos
 

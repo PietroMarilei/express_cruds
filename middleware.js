@@ -1,16 +1,17 @@
 //------------------------------------------------ middleware
 const jwt = require('jsonwebtoken');
-const secretKey = "test-password"
+const config = require ('./config')
+
 
 const auth = (req, res, next) => {
     const token = req.header('jwt');
+    console.log('jwt token ->',token);
     if (!token) {
         return res.status(401).json({ error: 'no token :(' });
     }
     try {
-        const decoded = jwt.verify(token, secretKey)
-        // lo posso anche rendere disponibile in sessione
-        req.session.user = { id: decoded.userId, username: decoded.username };
+        const decoded = jwt.verify(token, config.SECRET_KEY)
+    
         //infilo nella req i dati dell'user
         req.user = { id: decoded.userId, username: decoded.username }
         next()

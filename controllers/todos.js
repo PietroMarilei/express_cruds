@@ -1,20 +1,28 @@
 const express = require('express')
 const router = express.Router();
 const fs = require('fs');
-const path = require('path');
-const todosFilePath = path.join(__dirname, 'db', 'todos.json');
-
-let todos = require("./db/todos.json");
-let users = require("./db/users.json")
-const auth = require('./middleware')
+const { todosFilePath } = require('../config')
+const db = require('../db')
+let todos = require("../db/todos.json");
+let users = require("../db/users.json")
+const auth = require('../middleware')
+const dataValidator = require("../validator")
 router.use(auth);
 
-router.get('/getTodo/:id', getTodos)
-router.post('/addTodo', addTodo)
-router.post('/updateTodo/:id', updateTodo)
+router.get('/getTodo/:id', getTodo)
+router.get('/getAllTodos', getAllTodos)
+router.post('/addTodo', dataValidator, addTodo)
+router.post('/updateTodo/:id', dataValidator, updateTodo)
 router.delete('/deleteTodo/:id', deleteTodo)
 
-function getTodos(req, res) {
+function getAllTodos(req, res) {
+    res.json(todos)
+}
+
+function getUserTodo(req, res) {
+
+    // ❌ da sistemare ricerca per id dell todo e ricerca di tutti i tods di quel singolo utente
+
     const id = req.params.id
     const user = req.user
 
@@ -31,18 +39,17 @@ function getTodos(req, res) {
 }
 
 function addTodo(req, res) {
-    if (!isValidUpdateData(req.body)) {
-        return res.status(400).json({ error: 'Invalid update data format', updateData });
-    }
+    // if (!isValidUpdateData(req.body)) {
+    //     return res.status(400).json({ error: 'Invalid update data format', updateData });
+    // }
 
     const newTodo = req.body
     newTodo.id = todos.length + 1
     newTodo.userId = req.user.id
     todos.push(req.body);
 
-  
-
-    fs.writeFileSync(todosFilePath, JSON.stringify(todos))
+    db.writeTodos(todos)
+    // fs.writeFileSync(todosFilePath, JSON.stringify(todos))
 
     //deve risp con solo i todo di quell'user, non con tutti
     res.json(todos)
@@ -52,22 +59,22 @@ function updateTodo(req, res) {
     const id = req.params.id
     const updateData = req.body
 
-    if (!isValidUpdateData(updateData)) {
-        return res.status(400).json({ error: 'Invalid update data format' , updateData  });
-    }
-    
+    // if (!isValidUpdateData(updateData)) {
+    //     return res.status(400).json({ error: 'Invalid update data format' , updateData  });
+    // }
+
     updateData.userId = req.user.id
 
     //aggiorna solo quelli sull'id dell'user
     const userTodos = todos.filter(e => e.userId == req.user.id)
-    
+
+
     const indexToUpdate = userTodos.findIndex((e) => e.id == id);
 
     if (indexToUpdate == -1) {
         return res.status(404).json({ error: 'no todo with this id' })
     }
 
-    
     todos[indexToUpdate] = updateData
 
     fs.writeFileSync(todosFilePath, JSON.stringify(todos))
@@ -77,14 +84,14 @@ function updateTodo(req, res) {
 
 }
 //delete 
-function deleteTodo (req, res)  {
+function deleteTodo(req, res) {
     const id = req.params.id
 
     // copntrollo se l'user puó cancellare quel todo
     if (req.body.userId != req.user.id) {
-        return res.status(401).json({error: "You can't delete others todos"})
+        return res.status(401).json({ error: "You can't delete others todos" })
     }
-  
+
     const updatedTodos = todos.filter((e) => e.id != id)
 
     // Verifica se l'elemento esiste nell'array

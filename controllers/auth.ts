@@ -3,15 +3,13 @@ import fs from "fs";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { SECRET_KEY, usersFilePath } from "../config";
-import { User } from "../db/users.interface"; // Importa l'interfaccia User
-
-
+import { User } from "../db/users.interface"; 
 
 const router = express.Router();
 
 router.post("/register", (req: Request, res: Response) => {
   const { username, password } = req.body;
-  const users: User[] = require("../db/users.json"); // Assicurati che il tipo di dati users sia corretto rispetto al tuo modello User
+  const users: User[] = require("../db/users.json"); 
   const newUser: User = {
     id: users.length + 1,
     username: username,
@@ -28,7 +26,7 @@ router.post("/register", (req: Request, res: Response) => {
 
 router.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
-  const users: User[] = require("../db/users.json"); // Assicurati che il tipo di dati users sia corretto rispetto al tuo modello User
+  const users: User[] = require("../db/users.json"); 
   const user = users.find((e: User) => e.username === username);
 
   if (!user || user.password !== password) {

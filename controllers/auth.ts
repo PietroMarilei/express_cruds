@@ -52,6 +52,7 @@ import { Router } from "express";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
+
 passport.use(
   new GoogleStrategy(
     {
@@ -87,5 +88,33 @@ router.get(
   }
 );
 
+//-------------facebook log in 
+import { Strategy as FacebookStrategy } from "passport-facebook";
 
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: 1189558458678663,
+      clientSecret: FACEBOOK_APP_SECRET,
+      callbackURL: "http://localhost:3000/auth/facebook/callback",
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // Logica per gestire l'autenticazione con Facebook
+      // Includi la logica per cercare o creare un utente nel tuo sistema
+      // e autenticarlo
+      // 👍️ qui devo verificare se l'utente é nel db e generare il jwt per lui
+      console.log("auth facebook success!");
+    }
+  )
+);
+router.get("/facebook", passport.authenticate("facebook"));
+
+router.get(
+  "/facebook/callback",
+  passport.authenticate("facebook", { failureRedirect: "/login" }),
+  (req, res) => {
+    // Successo dell'autenticazione
+    res.redirect("/");
+  }
+);
 export default router;

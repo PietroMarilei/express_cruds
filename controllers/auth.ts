@@ -2,13 +2,19 @@ import express from "express";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { SECRET_KEY, usersFilePath } from "../config";
+import { usersFilePath } from "../config";
 import { User } from "../db/users.interface"; 
 
 require("dotenv").config();
-
+const SECRET_KEY = process.env.SECRET_KEY;
 const GOOGLE_ID = process.env.GOOGLE_ID;
 const GOOGLE_KEY = process.env.GOOGLE_KEY;
+const FACEBOOK_ID = process.env.FACEBOOK_ID;
+const FACEBOOK_KEY = process.env.FACEBOOK_KEY;
+
+interface MyRequest extends Request {
+  user?: any; 
+}
 
 const router = express.Router();
 
@@ -57,8 +63,16 @@ import { Router } from "express";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
+//spingo i dati dell'user in un formato leggibile, prassi di passport
+passport.serializeUser(function (user: any, done) {
+  done(null, user);
+});
 
+passport.deserializeUser(function (user: any, done) {
+  done(null, user);
+});
 
+// step due 2️⃣ 
 passport.use(
   new GoogleStrategy(
     {
@@ -67,29 +81,28 @@ passport.use(
       callbackURL: "http://localhost:3000/auth/google/callback",
     },
     (accessToken, refreshToken, profile, done) => {
-      // Questa è la funzione di callback chiamata dopo l'autenticazione con Google
-      // Puoi gestire il profilo dell'utente qui e autenticarlo nel tuo sistema
-      // Ad esempio, puoi cercare o creare un utente nel tuo database e autenticarlo
+      
       
       // 👍️ qui devo verificare se l'utente é nel db e generare il jwt per lui
-      console.log("auth google success!", profile);
+      
       return done(null, profile);
     }
   )
 );
 
-// Rotte per l'autenticazione con Google
+// 1️⃣  quando l'utente va qua lo porta su googleauth
 router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
-
+// 3️⃣  dopo l'user viene mandato qui con i parametri necessari
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
-    // Successo dell'autenticazione
-    res.redirect("/");
+  (req:MyRequest, res) => {
+    console.log('auth google success-> req.user', req.user);
+    
+    res.json("google auth success!");
   }
 );
 
@@ -99,8 +112,8 @@ import { Strategy as FacebookStrategy } from "passport-facebook";
 passport.use(
   new FacebookStrategy(
     {
-      clientID: 1189558458678663,
-      clientSecret: "ee4d02fda39fef371442de6b72ac1b81",
+      clientID: FACEBOOK_ID,
+      clientSecret: FACEBOOK_KEY,
       callbackURL: "http://localhost:3000/auth/facebook/callback",
     },
     (accessToken, refreshToken, profile, done) => {

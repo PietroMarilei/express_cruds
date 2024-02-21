@@ -38,8 +38,6 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-//test test
-
 router.get(
   "/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
